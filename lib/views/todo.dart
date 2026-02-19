@@ -1,6 +1,11 @@
 import "package:flutter/material.dart";
 import "package:habitica_clone/config.dart";
+import "package:habitica_clone/db/database.dart";
 import "package:habitica_clone/mock/mock.dart";
+import "package:habitica_clone/views/home.dart";
+import "package:uuid/uuid.dart";
+import "package:uuid/v4.dart";
+import "../components/navigation_bar.dart";
 
 class TodoView extends StatefulWidget {
   TodoView({super.key});
@@ -30,10 +35,17 @@ class _TodoViewState extends State<TodoView> {
     });
   }
 
+  Future<void> addToDb(String title, description, bool check) async {
+    await JSONDatabase().addTodo(Uuid().v4(), title, description, check);
+  }
+
   @override
   void initState() {
     super.initState();
+    initialize();
+  }
 
+  Future<void> initialize() async {
     todoItems = getMockTodos(widget.todoCount).map((e) {
       return TodoItem(
         title: e["title"],
@@ -41,6 +53,9 @@ class _TodoViewState extends State<TodoView> {
         changeRows: changeRows,
       );
     }).toList();
+    for (TodoItem item in todoItems) {
+      await addToDb(item.title, item.description, item.isChecked);
+    }
 
     for (var e in todoItems) {
       if (!e.isChecked) {
@@ -49,6 +64,19 @@ class _TodoViewState extends State<TodoView> {
         doneSide.add(e);
       }
     }
+
+    setState(() {
+      todoSide = [];
+      doneSide = [];
+
+      for (var e in todoItems) {
+        if (!e.isChecked) {
+          todoSide.add(e);
+        } else {
+          doneSide.add(e);
+        }
+      }
+    });
   }
 
   @override
@@ -111,16 +139,28 @@ class _TodoItemState extends State<TodoItem> {
               child: Column(
                 children: [
                   // title
-                  Text(
-                    widget.title,
-                    style: !widget.isChecked
-                        ? getGlobalFont(16, Theme.of(context).primaryColor)
-                        : getGlobalFont(
-                            16,
-                            Theme.of(context).secondaryHeaderColor,
-                          ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      widget.isChecked
+                          ? Icon(Icons.check, color: Colors.white)
+                          : Icon(Icons.close),
+                      Flexible(
+                        child: Text(
+                          widget.title,
+                          style: !widget.isChecked
+                              ? getGlobalFont(
+                                  16,
+                                  Theme.of(context).primaryColor,
+                                )
+                              : getGlobalFont(
+                                  16,
+                                  Theme.of(context).secondaryHeaderColor,
+                                ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
 
                   // description body
