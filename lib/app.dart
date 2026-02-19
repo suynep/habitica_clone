@@ -10,7 +10,7 @@ class HabiticaApp extends StatelessWidget {
       home: HabiticaHome(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
       ),
     );
   }
